@@ -1,40 +1,59 @@
 import React, { useState, useEffect } from "react";
 
 const EmployeeForm = ({ onClose, onSave, employee }) => {
-  const [fullName, setFullName] = useState(employee ? employee.fullName : "");
-  const [gender, setGender] = useState(employee ? employee.gender : "");
-  const [dob, setDob] = useState(employee ? employee.dob : "");
-  const [state, setState] = useState(employee ? employee.state : "");
-  const [active, setActive] = useState(employee ? employee.active : true);
-  const [profileImage, setProfileImage] = useState(
-    employee ? employee.profileImage : ""
-  );
-  const [preview, setPreview] = useState(employee ? employee.profileImage : "");
+  const [formData, setFormData] = useState({
+    fullName: "",
+    gender: "",
+    dob: "",
+    state: "",
+    active: true,
+    profileImage: "",
+  });
 
+  const [preview, setPreview] = useState("");
+
+  // Edit mode: set existing employee data
   useEffect(() => {
-    if (profileImage) {
-      const reader = new FileReader();
-      reader.onloadend = () => setPreview(reader.result);
-      reader.readAsDataURL(profileImage);
-    } else {
-      setPreview(employee ? employee.profileImage : "");
+    if (employee) {
+      setFormData(employee);
+      if (employee.profileImage instanceof File) {
+        const reader = new FileReader();
+        reader.onloadend = () => setPreview(reader.result);
+        reader.readAsDataURL(employee.profileImage);
+      } else {
+        setPreview(employee.profileImage || "");
+      }
     }
-  }, [profileImage, employee]);
+  }, [employee]);
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData({
+      ...formData,
+      [name]: name === "active" ? value === "true" : value,
+    });
+  };
+
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    setFormData({
+      ...formData,
+      profileImage: file,
+    });
+
+    const reader = new FileReader();
+    reader.onloadend = () => setPreview(reader.result);
+    reader.readAsDataURL(file);
+  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!fullName || !gender || !dob || !state) {
-      alert("Please fill all required fields");
-      return;
-    }
+
     onSave({
-      id: employee ? employee.id : Date.now(),
-      fullName,
-      gender,
-      dob,
-      state,
-      active,
-      profileImage: preview,
+      ...formData,
+      profileImage: preview, 
     });
   };
 
@@ -42,16 +61,24 @@ const EmployeeForm = ({ onClose, onSave, employee }) => {
     <div className="modal">
       <div className="employee-modal">
         <h2>{employee ? "Edit Employee" : "Add Employee"}</h2>
+
         <form onSubmit={handleSubmit} className="employee-form">
           <label>Full Name</label>
           <input
             type="text"
-            value={fullName}
-            onChange={(e) => setFullName(e.target.value)}
+            name="fullName"
+            value={formData.fullName}
+            onChange={handleChange}
+            required
           />
 
           <label>Gender</label>
-          <select value={gender} onChange={(e) => setGender(e.target.value)}>
+          <select
+            name="gender"
+            value={formData.gender}
+            onChange={handleChange}
+            required
+          >
             <option value="">Select Gender</option>
             <option value="Male">Male</option>
             <option value="Female">Female</option>
@@ -60,35 +87,52 @@ const EmployeeForm = ({ onClose, onSave, employee }) => {
           <label>Date of Birth</label>
           <input
             type="date"
-            value={dob}
-            onChange={(e) => setDob(e.target.value)}
+            name="dob"
+            value={formData.dob}
+            onChange={handleChange}
+            required
           />
 
           <label>State</label>
-          <select value={state} onChange={(e) => setState(e.target.value)}>
+          <select
+            name="state"
+            value={formData.state}
+            onChange={handleChange}
+            required
+          >
             <option value="">Select State</option>
             <option value="Delhi">Delhi</option>
             <option value="Maharashtra">Maharashtra</option>
             <option value="Karnataka">Karnataka</option>
             <option value="Tamil Nadu">Tamil Nadu</option>
-            {/* Add more states if needed */}
           </select>
 
           <label>Status</label>
-          <select value={active} onChange={(e) => setActive(e.target.value === "true")}>
+          <select
+            name="active"
+            value={formData.active}
+            onChange={handleChange}
+          >
             <option value="true">Active</option>
             <option value="false">Inactive</option>
           </select>
 
           <label>Profile Image</label>
-          <input
-            type="file"
-            onChange={(e) => setProfileImage(e.target.files[0])}
-          />
-          {preview && <img src={preview} alt="Preview" className="preview-img" />}
+          <input type="file" accept="image/*" onChange={handleImageChange} />
+
+          {preview && (
+            <img
+              src={preview}
+              alt="Preview"
+              className="preview-img"
+              style={{ width: "80px", marginTop: "10px" }}
+            />
+          )}
 
           <div className="form-buttons">
-            <button type="submit">{employee ? "Update" : "Add"}</button>
+            <button type="submit">
+              {employee ? "Update" : "Add"}
+            </button>
             <button type="button" className="cancel-btn" onClick={onClose}>
               Cancel
             </button>
