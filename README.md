@@ -9,7 +9,7 @@ It is deployed live and follows basic UI and component-based architecture.
 
 ## 🔗 Live Demo
 
-https://employee-dashboard.vercel.app/
+https://employee-dashboard-pink-one.vercel.app/
 
 ---
 
@@ -38,4 +38,5 @@ https://employee-dashboard.vercel.app/
 ---
 
 ## 📂 Project Structure (Overview)
+
 
